@@ -91,14 +91,14 @@ class Inspection(wx.Frame):
         dlg.Destroy()
         
             
-    def OnSelectReport(self, event):
-        wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
-        dlg = wx.FileDialog(self, "选择报告", os.getcwd(), style = wx.OPEN, wildcard = wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.report_path = dlg.GetPath()
-            self.myLog('报告已选择，路径为：  ' + self.report_path)
-            self.mReadReport.Enable(True)
-        dlg.Destroy()
+#    def OnSelectReport(self, event):
+#        wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
+#        dlg = wx.FileDialog(self, "选择报告", os.getcwd(), style = wx.OPEN, wildcard = wildcard)
+#        if dlg.ShowModal() == wx.ID_OK:
+#            self.report_path = dlg.GetPath()
+#            self.myLog('报告已选择，路径为：  ' + self.report_path)
+#            self.mReadReport.Enable(True)
+#        dlg.Destroy()
         
     def myLog(self, txt):
         str_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
