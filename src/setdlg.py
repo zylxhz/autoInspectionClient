@@ -79,12 +79,14 @@ class SetDlg(wx.Dialog):
     def OnOK(self, event):
         f = open('./config.ini','w')
         try:
-            f.write(self.ip.GetValue())
-            f.write(self.port.GetValue())
-            f.write(self.outDir.GetValue())
-            f.write(self.scriptPath.GetValue())
-            f.write(self.system.GetValue())
-            f.write(self.reporter.GetValue())
+            f.write(self.ip.GetValue() + '\n')
+            f.write(self.port.GetValue() + '\n')
+            f.write(self.outDir.GetValue() + '\n')
+            f.write(self.scriptPath.GetValue() + '\n')
+            f.write(self.system.GetValue() + '\n')
+            f.write(self.reporter.GetValue() + '\n')
+            f.write(self.province.GetValue() + '\n')
+            f.write(self.city.GetValue())
         finally:
             f.close()
         msgDlg = wx.MessageDialog(None,"配置修改成功", "提示", wx.OK)

@@ -79,11 +79,13 @@ class Inspection(wx.Frame):
             f.close()
         
     def OnStartInspection(self, event):
+        self.myLog(u'开始巡检')
         out_dir = self.dir_of_report + os.path.sep + self.getNowTime()
         self.report_path = out_dir + os.path.sep + 'report.html'
         arg = '-d ' + out_dir + ' ' + self.script_path
         print arg   
         os.system('pybot ' + arg)
+        self.myLog(u'报告已生成：' + self.report_path)
     
     def OnSetting(self, event):
         dlg = SetDlg(self.remote_server_ip, self.remote_server_port, self.dir_of_report, self.script_path, self.system, self.reporter, self.province, self.city)
@@ -95,27 +97,29 @@ class Inspection(wx.Frame):
         return time.strftime("%Y%m%d%H%M%S",time.localtime(time.time()))
     
     def OnReadReport(self, event):
-        wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
-        dlg = wx.FileDialog(self, "选择报告", self.dir_of_report, style = wx.OPEN, wildcard = wildcard)
-        if dlg.ShowModal() == wx.ID_OK:
-            report_path = dlg.GetPath()
-            self.myLog('报告已选择，路径为：  ' + report_path)
-            webbrowser.open(report_path) 
-        dlg.Destroy()
+#        wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
+#        dlg = wx.FileDialog(self, "选择报告", self.dir_of_report, style = wx.OPEN, wildcard = wildcard)
+#        if dlg.ShowModal() == wx.ID_OK:
+#            report_path = dlg.GetPath()
+#            self.myLog('报告已选择，路径为：  ' + report_path)
+#            webbrowser.open(report_path) 
+#        dlg.Destroy()
+        webbrowser.open(self.report_path)
         
             
     def OnSendReport(self, event):
-        wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
-        dlg = wx.FileDialog(self, "发送报告", os.getcwd(), style = wx.OPEN, wildcard = wildcard)
-        report_path = ''
-        log_path = ''
-        if dlg.ShowModal() == wx.ID_OK:
-            report_path = dlg.GetPath()
-            self.myLog('报告已选择，路径为：  ' + report_path)
-            log_path = report_path.replace('report.html','log.html')
-            self.myLog('日志文件已选择，路径为：  ' + log_path)                    
-        dlg.Destroy()
-        report_file = open(report_path, 'rb')
+#        wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
+#        dlg = wx.FileDialog(self, "发送报告", os.getcwd(), style = wx.OPEN, wildcard = wildcard)
+#        report_path = ''
+#        log_path = ''
+#        if dlg.ShowModal() == wx.ID_OK:
+#            report_path = dlg.GetPath()
+#            self.myLog('报告已选择，路径为：  ' + report_path)
+#            log_path = report_path.replace('report.html','log.html')
+#            self.myLog('日志文件已选择，路径为：  ' + log_path)                    
+#        dlg.Destroy()
+        log_path = self.report_path.replace('report.html', 'log.html')
+        report_file = open(self.report_path, 'rb')
         log_file = open(log_path, 'rb')
         url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
         # 在 urllib2 上注册 http 流处理句柄
