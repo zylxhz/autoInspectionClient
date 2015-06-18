@@ -43,11 +43,11 @@ class SetDlg(wx.Dialog):
         flexGridSizer.Add(self.city, 0, wx.EXPAND)
                        
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
-        btnSizer.Add((20,20), 1)
+        btnSizer.Add((15,15), 1)
         btnSizer.Add(self.okBtn)
-        btnSizer.Add((20,20), 1)
+        btnSizer.Add((15,15), 1)
         btnSizer.Add(self.cancelBtn)
-        btnSizer.Add((20,20), 1)
+        btnSizer.Add((15,15), 1)
         
         mainSizer = wx.BoxSizer(wx.VERTICAL)
         mainSizer.Add(flexGridSizer)

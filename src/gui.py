@@ -1,7 +1,8 @@
 #coding=utf-8
-from setdlg import SetDlg
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
+from setdlg import SetDlg
+from taskdlg import TaskDlg
 import os
 import time
 import urllib
@@ -41,14 +42,14 @@ class Inspection(wx.Frame):
         menu3 = wx.Menu()
         menuBar.Append(menu3, u'工具')
         mSetting = menu3.Append(wx.NewId(), u'配置', u'配置')
-#        mTask = menu3.Append(wx.NewId(), u'定时任务', u'增加、修改或删除定时任务')
+        mTask = menu3.Append(wx.NewId(), u'定时任务', u'增加、修改或删除定时任务')
         self.SetMenuBar(menuBar)
         
         self.Bind(wx.EVT_MENU, self.OnStartInspection, mStartInspection)
         self.Bind(wx.EVT_MENU, self.OnSetting, mSetting)
         self.Bind(wx.EVT_MENU, self.OnSendReport, self.mSendReport)
         self.Bind(wx.EVT_MENU, self.OnReadReport, self.mReadReport)
-#        self.Bind(wx.EVT_MENU, self.OnTask, mTask)
+        self.Bind(wx.EVT_MENU, self.OnTask, mTask)
         
         #初始化参数
         self.getParameter()        
@@ -96,7 +97,10 @@ class Inspection(wx.Frame):
         dlg.Destroy()
         self.getParameter()  
     
-#    def OnTask(self, event):
+    def OnTask(self, event):
+        dlg = TaskDlg()
+        dlg.ShowModal()
+        dlg.Destroy()
         
         
     def getNowTime(self):
