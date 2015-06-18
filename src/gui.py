@@ -17,7 +17,7 @@ class Inspection(wx.Frame):
         panel.SetBackgroundColour("White")
         
         #创建输出框
-        self.multiText=wx.TextCtrl(panel,-1, '', size=(480, 300), style=wx.TE_MULTILINE)
+        self.multiText=wx.TextCtrl(panel,-1, '', size=(380, 300), style=wx.TE_MULTILINE)
         self.multiText.SetInsertionPoint(0)
         
         #设定输出框和panel大小相同
@@ -32,21 +32,23 @@ class Inspection(wx.Frame):
         menu1 = wx.Menu()
         menuBar.Append(menu1, u'巡检')
         mStartInspection = menu1.Append(wx.NewId(), u'开始', u'开始巡检')
-        menu2 = wx.Menu()
-        menuBar.Append(menu2, u'报告')   
-#        mSelectReport = menu2.Append(wx.NewId(), u'选择报告', u'选择报告')
-        mReadReport = menu2.Append(wx.NewId(), u'查看报告', u'查看报告')
-        mSendReport = menu2.Append(wx.NewId(), u'发送报告', u'将报告发送到服务器端')
+        self.menu2 = wx.Menu()
+        menuBar.Append(self.menu2, u'报告')   
+        self.mReadReport = self.menu2.Append(wx.NewId(), u'查看报告', u'查看报告')
+        self.mSendReport =  self.menu2.Append(wx.NewId(), u'发送报告', u'将报告发送到服务器端')
+        self.menu2.Enable(self.mReadReport.GetId(), False)
+        self.menu2.Enable(self.mSendReport.GetId(), False)
         menu3 = wx.Menu()
         menuBar.Append(menu3, u'工具')
         mSetting = menu3.Append(wx.NewId(), u'配置', u'配置')
+#        mTask = menu3.Append(wx.NewId(), u'定时任务', u'增加、修改或删除定时任务')
         self.SetMenuBar(menuBar)
         
         self.Bind(wx.EVT_MENU, self.OnStartInspection, mStartInspection)
         self.Bind(wx.EVT_MENU, self.OnSetting, mSetting)
-        self.Bind(wx.EVT_MENU, self.OnSendReport, mSendReport)
-        self.Bind(wx.EVT_MENU, self.OnReadReport, mReadReport)
-#        self.Bind(wx.EVT_MENU, self.OnSelectReport, mSelectReport)
+        self.Bind(wx.EVT_MENU, self.OnSendReport, self.mSendReport)
+        self.Bind(wx.EVT_MENU, self.OnReadReport, self.mReadReport)
+#        self.Bind(wx.EVT_MENU, self.OnTask, mTask)
         
         #初始化参数
         self.getParameter()        
@@ -83,15 +85,19 @@ class Inspection(wx.Frame):
         out_dir = self.dir_of_report + os.path.sep + self.getNowTime()
         self.report_path = out_dir + os.path.sep + 'report.html'
         arg = '-d ' + out_dir + ' ' + self.script_path
-        print arg   
         os.system('pybot ' + arg)
         self.myLog(u'报告已生成：' + self.report_path)
+        self.menu2.Enable(self.mReadReport.GetId(), True)
+        self.menu2.Enable(self.mSendReport.GetId(), True)
     
     def OnSetting(self, event):
         dlg = SetDlg(self.remote_server_ip, self.remote_server_port, self.dir_of_report, self.script_path, self.system, self.reporter, self.province, self.city)
         dlg.ShowModal()
         dlg.Destroy()
         self.getParameter()  
+    
+#    def OnTask(self, event):
+        
         
     def getNowTime(self):
         return time.strftime("%Y%m%d%H%M%S",time.localtime(time.time()))
