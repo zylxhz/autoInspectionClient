@@ -3,6 +3,7 @@ from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 import logging
 import os
+import sys
 import time
 import urllib2
 class Auto:
@@ -10,8 +11,8 @@ class Auto:
         out_dir = self.dir_of_report + os.path.sep + self.getNowTime()       
         self.report_path = out_dir + os.path.sep + 'report.html'
         arg = '-d ' + out_dir + ' ' + self.script_path
-        self.logger.info('巡检脚本路径：' + self.script_path)
-        self.logger.info('开始巡检')
+        self.logger.info(u'巡检脚本路径：' + self.script_path)
+        self.logger.info(u'开始巡检')
         os.system('pybot ' + arg)
         self.logger.info(u'报告已生成：' + self.report_path)
     
@@ -20,7 +21,7 @@ class Auto:
         report_file = open(self.report_path, 'rb')
         log_file = open(log_path, 'rb')
         url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
-        self.logger.info('提交报告的网址 :' + url)
+        self.logger.info(url)
         # 在 urllib2 上注册 http 流处理句柄
         register_openers()  
         # 开始对multipart/form-data编码
@@ -35,12 +36,12 @@ class Auto:
         response = urllib2.urlopen(request).read()
         
         if response.find(u'巡检报告提交成功'):
-            self.logger.info('巡检报告提交成功')
+            self.logger.info(u'巡检报告提交成功')
         else:
-            self.logger.info('巡检报告提交失败')             
+            self.logger.info(u'巡检报告提交失败')             
     
     def getParameter(self):
-        f = open('./config.ini','r')
+        f = open( self.base_dir + os.path.sep + 'config.ini','r')
         try:
             lines = f.readlines( )
             for i in range(0, 8) :
@@ -69,15 +70,22 @@ class Auto:
         return time.strftime("%Y%m%d%H%M%S",time.localtime(time.time()))
     
     def init(self):
+        self.base_dir = os.path.dirname(os.path.abspath(__file__)) 
+        path = self.base_dir + os.path.sep + 'log' + os.path.sep + 'Auto'
+        if not os.path.isdir(path):
+            os.makedirs(path)
+        logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s:%(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    datefmt='%a, %d %b %Y %H:%M:%S',
+                    filename =  path + os.path.sep + self.getNowTime() + '.log',
+                    filemode='w')
         # 创建一个logger，用于日志记录
-        self.logger = logging.getLogger('mylogger')
-        self.logger.setLevel(logging.DEBUG)
+        self.logger = logging.getLogger('Auto')
         #创建一个handler，用于写入日志文件，文件名字为当前时间
-        fh = logging.FileHandler(self.getNowTime() + '.log')
-        fh.setLevel(logging.DEBUG)
-        self.logger.addHandler(fh)
+#        fh = logging.FileHandler(, encoding = "UTF-8")
+#        self.logger.addHandler(fh)
         self.getParameter()
-        self.logger.info('获得配置参数')
+        self.logger.info(u'获得配置参数')
         
         
 

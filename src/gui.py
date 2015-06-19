@@ -13,6 +13,7 @@ import wx
 class Inspection(wx.Frame):
     
     def __init__(self, parent, id):
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))  
         wx.Frame.__init__(self, parent, id, u'应用巡检', size=(400, 300))
         panel = wx.Panel(self, -1)
         panel.SetBackgroundColour("White")
@@ -56,11 +57,11 @@ class Inspection(wx.Frame):
 
     #从配置文件中获得配置信息    
     def getParameter(self):
-        f = open('./config.ini','r')
+        f = open(self.base_dir + os.path.sep + 'config.ini','r')
         try:
             lines = f.readlines( )
             for i in range(0, 8) :
-                lines[i] = lines[i].strip('\n')
+                lines[i] = lines[i].decode('utf-8').strip('\n')
             #服务的IP地址
             self.remote_server_ip = lines[0]
             #服务的端口号
@@ -82,12 +83,12 @@ class Inspection(wx.Frame):
             f.close()
         
     def OnStartInspection(self, event):
-        self.myLog(u'开始巡检')
+        self.Display(u'开始巡检')
         out_dir = self.dir_of_report + os.path.sep + self.getNowTime()
         self.report_path = out_dir + os.path.sep + 'report.html'
         arg = '-d ' + out_dir + ' ' + self.script_path
         os.system('pybot ' + arg)
-        self.myLog(u'报告已生成：' + self.report_path)
+        self.Display(u'报告已生成：' + self.report_path)
         self.menu2.Enable(self.mReadReport.GetId(), True)
         self.menu2.Enable(self.mSendReport.GetId(), True)
     
@@ -111,7 +112,7 @@ class Inspection(wx.Frame):
 #        dlg = wx.FileDialog(self, "选择报告", self.dir_of_report, style = wx.OPEN, wildcard = wildcard)
 #        if dlg.ShowModal() == wx.ID_OK:
 #            report_path = dlg.GetPath()
-#            self.myLog('报告已选择，路径为：  ' + report_path)
+#            self.Display('报告已选择，路径为：  ' + report_path)
 #            webbrowser.open(report_path) 
 #        dlg.Destroy()
         webbrowser.open(self.report_path)
@@ -124,9 +125,9 @@ class Inspection(wx.Frame):
 #        log_path = ''
 #        if dlg.ShowModal() == wx.ID_OK:
 #            report_path = dlg.GetPath()
-#            self.myLog('报告已选择，路径为：  ' + report_path)
+#            self.Display('报告已选择，路径为：  ' + report_path)
 #            log_path = report_path.replace('report.html','log.html')
-#            self.myLog('日志文件已选择，路径为：  ' + log_path)                    
+#            self.Display('日志文件已选择，路径为：  ' + log_path)                    
 #        dlg.Destroy()
         log_path = self.report_path.replace('report.html', 'log.html')
         report_file = open(self.report_path, 'rb')
@@ -154,7 +155,7 @@ class Inspection(wx.Frame):
         dlgmsg.ShowModal()
         dlgmsg.Destroy()
               
-    def myLog(self, txt):
+    def Display(self, txt):
         str_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
         self.multiText.AppendText(str_time + '    ' + txt + '\n')   
         
