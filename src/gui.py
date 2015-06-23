@@ -4,6 +4,7 @@ from poster.streaminghttp import register_openers
 from setdlg import SetDlg
 from taskdlg import TaskDlg
 import os
+import sys
 import time
 import urllib
 import urllib2
@@ -160,6 +161,8 @@ class Inspection(wx.Frame):
         self.multiText.AppendText(str_time + '    ' + txt + '\n')   
         
 if __name__ == '__main__' :
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     app = wx.PySimpleApp()
     frame = Inspection(parent=None, id=-1)
     frame.Show()
