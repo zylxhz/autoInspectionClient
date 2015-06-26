@@ -89,7 +89,7 @@ class SetDlg(wx.Dialog):
             f.write(self.city.GetValue())
         finally:
             f.close()
-        msgDlg = wx.MessageDialog(None,"配置修改成功", "提示", wx.OK)
+        msgDlg = wx.MessageDialog(None,u'配置修改成功','提示', wx.OK)
         msgDlg.ShowModal()
         msgDlg.Destroy()
         self.Close()

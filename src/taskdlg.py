@@ -71,6 +71,9 @@ class TaskDlg(wx.Dialog):
                 f.write(timer + '\n')
         finally:
             f.close()
+        msgDlg = wx.MessageDialog(None, u"删除定时器成功", u"提示", wx.OK)
+        msgDlg.ShowModal()
+        msgDlg.Destroy()
             
     def getNowTime(self):
         return time.strftime("%Y%m%d%H%M%S",time.localtime(time.time()))
