@@ -61,7 +61,7 @@ class AddTimerDlg(wx.Dialog):
             task_name = 'autoInspection' + hh + mm
             BASE_DIR = os.path.dirname(os.path.abspath(__file__))
             cmd = 'python ' + BASE_DIR + os.path.sep + 'auto.py'
-            os.system(r'schtasks /create /tn ' + task_name + r' /tr "' + cmd + r'" /sc daily /st ' + time_str)
+            os.system(r'schtasks /create /tn ' + task_name + r' /tr "' + cmd + r'" /sc daily /st ' + time_str + ':00')
             self.logger.info(u'增加 ' + time_str + u'定时执行任务')           
         finally:
             f.close()

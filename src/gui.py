@@ -3,6 +3,7 @@ from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
 from setdlg import SetDlg
 from taskdlg import TaskDlg
+from urllib2 import HTTPError
 import os
 import sys
 import time
@@ -10,6 +11,7 @@ import urllib
 import urllib2
 import webbrowser
 import wx
+import zipfile
 
 class Inspection(wx.Frame):
     
@@ -114,10 +116,10 @@ class Inspection(wx.Frame):
     
     def OnReadReport(self, event):
         wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
-        dlg = wx.FileDialog(self, "选择报告", self.dir_of_report, style = wx.OPEN, wildcard = wildcard)
+        dlg = wx.FileDialog(self, u"查看报告", defaultDir = self.dir_of_report, style = wx.OPEN, wildcard = wildcard)
         if dlg.ShowModal() == wx.ID_OK:
             report_path = dlg.GetPath()
-            self.Display('报告已选择，路径为：  ' + report_path)
+            self.Display(u'报告已选择，路径为：  ' + report_path)
             webbrowser.open(report_path) 
         dlg.Destroy()
         
@@ -126,30 +128,41 @@ class Inspection(wx.Frame):
             
     def OnSendReport(self, event):
         wildcard = 'html file (*.html)|*.html|All files(*.*)|*.*'
-        dlg = wx.FileDialog(self, u"发送报告", os.getcwd(), style = wx.OPEN, wildcard = wildcard)
+        dlg = wx.FileDialog(self, u"发送报告", defaultDir = self.dir_of_report, style = wx.OPEN, wildcard = wildcard)
         report_path = ''
-        log_path = ''
+        response = ''
         if dlg.ShowModal() == wx.ID_OK:
-            report_path = dlg.GetPath()
-            self.Display('报告已选择，路径为：  ' + report_path)
-            log_path = report_path.replace('report.html','log.html')
-            report_file = open(report_path, 'rb')
-            log_file = open(log_path, 'rb')
-            url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
-            # 在 urllib2 上注册 http 流处理句柄
-            register_openers()  
-            # 开始对multipart/form-data编码
-            # headers 包含必须的 Content-Type 和 Content-Length
-            # datagen 是一个生成器对象，返回编码过后的参数
-            datagen, headers = multipart_encode({'system' : self.system, 'province' : self.province, 'city' : self.city, 'reporter' : self.reporter, 'report_file' : report_file, 'log_file' : log_file})
-            # 创建请求对象
-            request = urllib2.Request(url, datagen, headers)
-            # 实际执行请求并取得返回
-            response = urllib2.urlopen(request).read()
-            #巡检报告提交成功或失败的信息
+            try:
+                report_path = dlg.GetPath()
+                self.Display(u'报告已选择，路径为：  ' + report_path)
+                report_dir = os.path.dirname(report_path)
+                self.zip_folder(report_dir, 'report.zip')
+                zip_file = open('report.zip', 'rb')
+                url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
+                # 在 urllib2 上注册 http 流处理句柄
+                register_openers()  
+                # 开始对multipart/form-data编码
+                # headers 包含必须的 Content-Type 和 Content-Length
+                # datagen 是一个生成器对象，返回编码过后的参数
+                datagen, headers = multipart_encode({
+                        'system'   : self.system, 
+                        'province' : self.province, 
+                        'city' : self.city, 
+                        'reporter' : self.reporter, 
+                        'zip' : zip_file })
+                # 创建请求对象
+                request = urllib2.Request(url, datagen, headers)
+                # 实际执行请求并取得返回
+                response = urllib2.urlopen(request).read()
+            except HTTPError:
+                if HTTPError.getcode() == 500:
+                    content = HTTPError.read()
+                    print content
+                else:
+                    raise          
             info = u'巡检报告提交失败'
             if response.find(u'巡检报告提交成功'):
-                info = u'巡检报告提交成功'
+                info = u'巡检报告提交成功'           
             #以消息对话框的方式显示
             dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
             dlgmsg.Center()
@@ -157,34 +170,51 @@ class Inspection(wx.Frame):
         dlg.Destroy()
 
     def OnSendLastReport(self, event):
-        log_path = self.report_path.replace('report.html', 'log.html')
-        report_file = open(self.report_path, 'rb')
-        log_file = open(log_path, 'rb')
-        url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
-        # 在 urllib2 上注册 http 流处理句柄
-        register_openers()  
-        # 开始对multipart/form-data编码
-        
-        # headers 包含必须的 Content-Type 和 Content-Length
-        # datagen 是一个生成器对象，返回编码过后的参数
-        datagen, headers = multipart_encode({'system' : self.system, 'province' : self.province, 'city' : self.city, 'reporter' : self.reporter, 'report_file' : report_file, 'log_file' : log_file})
- 
-        # 创建请求对象
-        request = urllib2.Request(url, datagen, headers)
-        # 实际执行请求并取得返回
-        response = urllib2.urlopen(request).read()
-        #巡检报告提交成功或失败的信息
+        try:
+            report_dir = os.path.dirname(self.report_path)
+            self.zip_folder(report_dir, 'report.zip')
+            zip_file = open('report.zip', 'rb')
+            url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
+            # 在 urllib2 上注册 http 流处理句柄
+            register_openers()  
+            # 开始对multipart/form-data编码
+            # headers 包含必须的 Content-Type 和 Content-Length
+            # datagen 是一个生成器对象，返回编码过后的参数
+            datagen, headers = multipart_encode({
+                    'system'   : self.system, 
+                    'province' : self.province, 
+                    'city' : self.city, 
+                    'reporter' : self.reporter, 
+                    'zip' : zip_file })
+            # 创建请求对象
+            request = urllib2.Request(url, datagen, headers)
+            # 实际执行请求并取得返回
+            response = urllib2.urlopen(request).read()
+        except HTTPError:
+            if HTTPError.getcode() == 500:
+                content = HTTPError.read()
+                print content
+            else:
+                raise          
         info = u'巡检报告提交失败'
         if response.find(u'巡检报告提交成功'):
-            info = u'巡检报告提交成功'
+            info = u'巡检报告提交成功'           
         #以消息对话框的方式显示
         dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
         dlgmsg.Center()
-        dlgmsg.ShowModal()
-        dlgmsg.Destroy()              
+        dlgmsg.ShowModal() 
+                   
     def Display(self, txt):
         str_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        self.multiText.AppendText(str_time + '    ' + txt + '\n')   
+        self.multiText.AppendText(str_time + '    ' + txt + '\n')
+    
+    def zip_folder(self, foldername, filename):
+        zip = zipfile.ZipFile( filename, 'w', zipfile.ZIP_DEFLATED)
+        for root,dirs,files in os.walk(foldername):
+            #files of cur file
+            for filename in files:
+                zip.write(os.path.join(root,filename))
+        zip.close()
         
 if __name__ == '__main__' :
     reload(sys)

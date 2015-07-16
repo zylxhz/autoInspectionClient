@@ -1,11 +1,13 @@
 #coding=utf-8
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
+from urllib2 import HTTPError
 import logging
 import os
 import sys
 import time
 import urllib2
+import zipfile
 class Auto:
     def startInspection(self):
         out_dir = self.dir_of_report + os.path.sep + self.getNowTime()       
@@ -17,24 +19,33 @@ class Auto:
         self.logger.info(u'报告已生成：' + self.report_path)
     
     def sendReport(self):
-        log_path = self.report_path.replace('report.html', 'log.html')
-        report_file = open(self.report_path, 'rb')
-        log_file = open(log_path, 'rb')
-        url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
-        self.logger.info(url)
-        # 在 urllib2 上注册 http 流处理句柄
-        register_openers()  
-        # 开始对multipart/form-data编码
-        
-        # headers 包含必须的 Content-Type 和 Content-Length
-        # datagen 是一个生成器对象，返回编码过后的参数
-        datagen, headers = multipart_encode({'system' : self.system, 'province' : self.province, 'city' : self.city, 'reporter' : self.reporter, 'report_file' : report_file, 'log_file' : log_file})
- 
-        # 创建请求对象
-        request = urllib2.Request(url, datagen, headers)
-        # 实际执行请求并取得返回
-        response = urllib2.urlopen(request).read()
-        
+        response = ''
+        try:
+            report_dir = os.path.dirname(self.report_path)
+            self.zip_folder(report_dir, 'D:\\report.zip')
+            zip_file = open('D:\\report.zip', 'rb')
+            url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
+            # 在 urllib2 上注册 http 流处理句柄
+            register_openers()  
+            # 开始对multipart/form-data编码
+            # headers 包含必须的 Content-Type 和 Content-Length
+            # datagen 是一个生成器对象，返回编码过后的参数
+            datagen, headers = multipart_encode({
+                    'system'   : self.system, 
+                    'province' : self.province, 
+                    'city' : self.city, 
+                    'reporter' : self.reporter, 
+                    'zip' : zip_file })
+            # 创建请求对象
+            request = urllib2.Request(url, datagen, headers)
+            # 实际执行请求并取得返回
+            response = urllib2.urlopen(request).read()
+        except HTTPError:
+            if HTTPError.getcode() == 500:
+                content = HTTPError.read()
+                print content
+            else:
+                raise         
         if response.find(u'巡检报告提交成功'):
             self.logger.info(u'巡检报告提交成功')
         else:
@@ -65,6 +76,14 @@ class Auto:
             
         finally:
             f.close()
+
+    def zip_folder(self, foldername, filename):
+        zip = zipfile.ZipFile( filename, 'w', zipfile.ZIP_DEFLATED)
+        for root,dirs,files in os.walk(foldername):
+            #files of cur file
+            for filename in files:
+                zip.write(os.path.join(root,filename))
+        zip.close()            
 
     def getNowTime(self):
         return time.strftime("%Y%m%d%H%M%S",time.localtime(time.time()))
