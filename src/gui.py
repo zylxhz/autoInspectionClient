@@ -7,7 +7,6 @@ from urllib2 import HTTPError
 import os
 import sys
 import time
-import urllib
 import urllib2
 import webbrowser
 import wx
@@ -153,20 +152,22 @@ class Inspection(wx.Frame):
                 # 创建请求对象
                 request = urllib2.Request(url, datagen, headers)
                 # 实际执行请求并取得返回
-                response = urllib2.urlopen(request).read()
-            except HTTPError:
-                if HTTPError.getcode() == 500:
-                    content = HTTPError.read()
-                    print content
-                else:
-                    raise          
-            info = u'巡检报告提交失败'
-            if response.find(u'巡检报告提交成功'):
-                info = u'巡检报告提交成功'           
-            #以消息对话框的方式显示
-            dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
-            dlgmsg.Center()
-            dlgmsg.ShowModal()               
+                f = urllib2.urlopen(request, timeout=120)
+                if f.getcode() == 200 :
+                    info = u'巡检报告提交成功'
+                    #以消息对话框的方式显示
+                    dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
+                    dlgmsg.Center()
+                    dlgmsg.ShowModal()                     
+            except HTTPError, e:
+                if e.getcode() == 500:
+                    info = u'巡检报告提交成功'
+                    #以消息对话框的方式显示
+                    dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
+                    dlgmsg.Center()
+                    dlgmsg.ShowModal()                 
+                print e                  
+             
         dlg.Destroy()
 
     def OnSendLastReport(self, event):
@@ -189,20 +190,21 @@ class Inspection(wx.Frame):
             # 创建请求对象
             request = urllib2.Request(url, datagen, headers)
             # 实际执行请求并取得返回
-            response = urllib2.urlopen(request).read()
-        except HTTPError:
-            if HTTPError.getcode() == 500:
-                content = HTTPError.read()
-                print content
-            else:
-                raise          
-        info = u'巡检报告提交失败'
-        if response.find(u'巡检报告提交成功'):
-            info = u'巡检报告提交成功'           
-        #以消息对话框的方式显示
-        dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
-        dlgmsg.Center()
-        dlgmsg.ShowModal() 
+            f = urllib2.urlopen(request, timeout=120)
+            if f.getcode() == 200 :
+                info = u'巡检报告提交成功'
+                #以消息对话框的方式显示
+                dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
+                dlgmsg.Center()
+                dlgmsg.ShowModal()                     
+        except HTTPError, e:
+            if e.getcode() == 500:
+                info = u'巡检报告提交成功'
+                #以消息对话框的方式显示
+                dlgmsg = wx.MessageDialog(None, info, u'消息',wx.OK | wx.ICON_INFORMATION)
+                dlgmsg.Center()
+                dlgmsg.ShowModal()                 
+            print e 
                    
     def Display(self, txt):
         str_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))

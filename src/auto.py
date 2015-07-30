@@ -1,13 +1,12 @@
 #coding=utf-8
 from poster.encode import multipart_encode
 from poster.streaminghttp import register_openers
-from urllib2 import HTTPError
 import logging
 import os
-import sys
 import time
 import urllib2
 import zipfile
+import sys
 class Auto:
     def startInspection(self):
         out_dir = self.dir_of_report + os.path.sep + self.getNowTime()       
@@ -19,12 +18,13 @@ class Auto:
         self.logger.info(u'报告已生成：' + self.report_path)
     
     def sendReport(self):
-        response = ''
         try:
             report_dir = os.path.dirname(self.report_path)
             self.zip_folder(report_dir, 'D:\\report.zip')
+            self.logger.info(u'报告已打包')
             zip_file = open('D:\\report.zip', 'rb')
             url = r'http://' + self.remote_server_ip + ':' + self.remote_server_port + r'/uploadreport/'
+            self.logger.info('url: ' + url)
             # 在 urllib2 上注册 http 流处理句柄
             register_openers()  
             # 开始对multipart/form-data编码
@@ -36,27 +36,22 @@ class Auto:
                     'city' : self.city, 
                     'reporter' : self.reporter, 
                     'zip' : zip_file })
+            self.logger.info(u'完成待发送数据编码')
             # 创建请求对象
             request = urllib2.Request(url, datagen, headers)
+            self.logger.info(u'请求对象创建成功')
             # 实际执行请求并取得返回
-            response = urllib2.urlopen(request).read()
-        except HTTPError:
-            if HTTPError.getcode() == 500:
-                content = HTTPError.read()
-                print content
-            else:
-                raise         
-        if response.find(u'巡检报告提交成功'):
+            urllib2.urlopen(request, timeout=120)
             self.logger.info(u'巡检报告提交成功')
-        else:
-            self.logger.info(u'巡检报告提交失败')             
+        except Exception, e:
+                self.logger.info(e)        
     
     def getParameter(self):
         f = open( self.base_dir + os.path.sep + 'config.ini','r')
         try:
             lines = f.readlines( )
             for i in range(0, 8) :
-                lines[i] = lines[i].strip('\n')
+                lines[i] = lines[i].decode('utf-8').strip('\n')
             #服务的IP地址
             self.remote_server_ip = lines[0]
             #服务的端口号
@@ -101,14 +96,14 @@ class Auto:
         # 创建一个logger，用于日志记录
         self.logger = logging.getLogger('Auto')
         #创建一个handler，用于写入日志文件，文件名字为当前时间
-#        fh = logging.FileHandler(, encoding = "UTF-8")
-#        self.logger.addHandler(fh)
         self.getParameter()
         self.logger.info(u'获得配置参数')
         
         
 
 if __name__ == '__main__' :
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
     a = Auto()
     a.init()
     a.startInspection()
